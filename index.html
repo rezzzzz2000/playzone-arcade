@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLAYZONE — Playable Gaming Arcade</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          darkbg: '#080b16',
+          panel: '#11182b',
+          muted: '#9aa6c4',
+          cyan: '#29e6d2',
+          purple: '#9167ff',
+          neonPink: '#ff2a85',
+        },
+        boxShadow: {
+          cyanGlow: '0 0 20px rgba(41, 230, 210, 0.4)',
+          purpleGlow: '0 0 20px rgba(145, 103, 255, 0.4)',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+  
+  body {
+    background: radial-gradient(circle at 80% 0%, #20204b 0, transparent 40%), #080b16;
+    font-family: 'Rajdhani', sans-serif;
+    color: #f5f7ff;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, .brand-font {
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  .hero-art:before, .hero-art:after {
+    content: "";
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border: 2px solid rgba(41, 230, 210, 0.3);
+    transform: rotate(45deg);
+    border-radius: 35px;
+  }
+  .hero-art:after {
+    width: 120px;
+    height: 120px;
+    border-color: rgba(168, 138, 255, 0.4);
+    transform: rotate(20deg);
+  }
+
+  .modal-backdrop {
+    background: rgba(4, 7, 15, 0.88);
+    backdrop-filter: blur(10px);
+  }
+
+  canvas {
+    image-rendering: pixelated;
+    touch-action: none;
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan selection:text-black">
+
+<!-- CYBER-ARCADE LOADING SCREEN OVERLAY -->
+<div id="loadingScreen" class="fixed inset-0 z-50 bg-[#04060d] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+  <div class="brand-font text-4xl md:text-6xl font-black tracking-widest text-white mb-6 animate-pulse">
+    PLAY<span class="text-cyan drop-shadow-[0_0_15px_rgba(41,230,210,0.8)]">ZONE</span>
+  </div>
+  
+  <div class="w-72 h-3 bg-panel border border-[#303a58] rounded-full overflow-hidden mb-4 p-0.5 shadow-cyanGlow">
+    <div id="loadingBar" class="h-full bg-gradient-to-r from-purple via-cyan to-neonPink rounded-full transition-all duration-100 ease-out" style="width: 0%"></div>
+  </div>
+  
+  <div id="loadingText" class="font-mono text-xs text-muted tracking-wider">SYSTEM INITIALIZING... [0%]</div>
+</div>
+
+<!-- HEADER -->
+<header class="sticky top-0 z-40 bg-[#080b16eF] border-b border-[#28304a] backdrop-blur-md">
+  <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="brand-font text-2xl font-black tracking-wider cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      PLAY<span class="text-cyan">ZONE</span>
+    </div>
+    <div class="flex items-center gap-6 font-semibold text-sm">
+      <a href="#games" class="hover:text-cyan transition-colors">Games Hub</a>
+      <a href="#challenge" class="hover:text-cyan transition-colors">Quick Clicker</a>
+      <button id="soundToggle" class="bg-panel border border-[#303a58] text-cyan px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 hover:border-cyan transition">
+        <span>🔊 Sound ON</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- MAIN WRAPPER -->
+<main class="max-w-6xl mx-auto px-6 w-full flex-grow">
+
+  <!-- HERO SECTION -->
+  <section class="py-12 md:py-16 grid md:grid-cols-12 gap-8 items-center">
+    <div class="md:col-span-7 space-y-4">
+      <div class="text-cyan font-bold tracking-widest text-xs uppercase brand-font">Interactive Web Arcade</div>
+      <h1 class="text-4xl md:text-6xl font-black leading-tight">
+        READY.<br>
+        <span class="bg-gradient-to-r from-cyan via-purple to-neonPink bg-clip-text text-transparent">SET. PLAY NOW.</span>
+      </h1>
+      <p class="text-muted text-base md:text-lg max-w-xl leading-relaxed">
+        Choose any game below to play inside pop-up overlays. High scores are saved automatically!
+      </p>
+      <div class="pt-2">
+        <a href="#games" class="inline-block bg-cyan text-[#061018] brand-font font-bold px-6 py-3 rounded-xl shadow-cyanGlow hover:scale-105 hover:bg-[#3bf5e1] transition-all duration-200">
+          EXPLORE GAMES ↓
+        </a>
+      </div>
+    </div>
+    
+    <div class="md:col-span-5">
+      <div class="hero-art min-h-[260px] border border-[#394365] rounded-3xl bg-gradient-to-br from-[#18294a] via-[#34205c] to-[#102f40] flex items-center justify-center shadow-2xl relative overflow-hidden group">
+        <div class="text-8xl z-10 transform group-hover:scale-110 transition duration-300 filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+          🎮
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAMES GRID SECTION -->
+  <section id="games" class="py-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold">Arcade Games Library</h2>
+        <p class="text-muted text-sm mt-1">Select any game below to start playing right away!</p>
+      </div>
+      <input type="text" id="search" placeholder="Search games..." 
+             class="bg-panel border border-[#303a58] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan w-full md:w-64 transition">
+    </div>
+
+    <!-- CATEGORY FILTERS -->
+    <div class="flex flex-wrap gap-2 mb-8">
+      <button class="filter-btn active bg-cyan/20 border border-cyan text-cyan px-4 py-1.5 rounded-full text-sm font-semibold transition" data-filter="all">All Games</button>
+      <button class="filter-btn bg-panel border border-[#303a58] text-muted hover:text-white px-4 py-1.5 rounded-full text-sm font-semibold transition" data-filter="action">Action</button>
+      <button class="filter-btn bg-panel border border-[#303a58] text-muted hover:text-white px-4 py-1.5 rounded-full text-sm font-semibold transition" data-filter="sports">Sports</button>
+      <button class="filter-btn bg-panel border border-[#303a58] text-muted hover:text-white px-4 py-1.5 rounded-full text-sm font-semibold transition" data-filter="puzzle">Puzzle</button>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="gameGrid">
+      
+      <!-- GAME 1: Adventure Quest -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="action">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#173d52] to-[#29204f] flex items-center justify-center text-6xl relative">
+            ⚔️
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-dungeon">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Adventure Quest</h3>
+              <span class="text-xs bg-purple/20 text-purple border border-purple/40 px-2 py-0.5 rounded font-mono">ACTION</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">Run and jump over obstacles and fire pits! Press SPACE or UP to jump over dangerous hazards.</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="dungeon">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+      <!-- GAME 2: Football Fever -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="sports">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#1e4620] to-[#172c4c] flex items-center justify-center text-6xl relative">
+            ⚽
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-football">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Football Fever Pro</h3>
+              <span class="text-xs bg-green-500/20 text-green-400 border border-green-500/40 px-2 py-0.5 rounded font-mono">SPORTS</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">Precision penalty shootout! Aim with mouse cursor, sync power meter, and beat the goalkeeper.</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="football">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+      <!-- GAME 3: Brain Blocks -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="puzzle">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#4b3520] to-[#263a51] flex items-center justify-center text-6xl relative">
+            🧩
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-puzzle">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Brain Blocks (2048)</h3>
+              <span class="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded font-mono">PUZZLE</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">Slide matching numbered tiles using arrow keys or onscreen controls to combine numbers and reach 2048!</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="puzzle">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+      <!-- GAME 4: Space Run -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="action">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#49305c] to-[#172c4c] flex items-center justify-center text-6xl relative">
+            🚀
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-space">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Space Run Shooter</h3>
+              <span class="text-xs bg-purple/20 text-purple border border-purple/40 px-2 py-0.5 rounded font-mono">ACTION</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">Pilot your starship through space. Use Left/Right arrows to move & Spacebar/Click to blast asteroids!</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="space">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+      <!-- GAME 5: Turbo Racing -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="sports">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#5c1c24] to-[#25174c] flex items-center justify-center text-6xl relative">
+            🏎️
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-racing">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Turbo Racing</h3>
+              <span class="text-xs bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded font-mono">SPORTS</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">High-speed highway racing! Steer between three lanes using Left/Right Arrow keys to dodge incoming traffic.</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="racing">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+      <!-- GAME 6: Clicker Challenge -->
+      <article class="card bg-panel border border-[#283451] rounded-2xl overflow-hidden hover:border-[#6574a5] hover:-translate-y-1 transition duration-200 flex flex-col justify-between" data-category="puzzle">
+        <div>
+          <div class="h-40 bg-gradient-to-br from-[#3b2057] to-[#12384a] flex items-center justify-center text-6xl relative">
+            ⚡
+            <span class="absolute top-3 right-3 bg-darkbg/80 text-cyan text-xs font-mono px-2 py-1 rounded border border-cyan/30">BEST: <span id="best-clicker">0</span></span>
+          </div>
+          <div class="p-5">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-xl font-bold">Clicker Rush</h3>
+              <span class="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded font-mono">PUZZLE</span>
+            </div>
+            <p class="text-muted text-sm leading-relaxed">Fast-reaction target clicking! Click moving targets before their timer expires and targets shrink.</p>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button class="launch-btn w-full bg-cyan text-darkbg font-bold brand-font py-2.5 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow" data-game="clicker">
+            PLAY GAME ▶
+          </button>
+        </div>
+      </article>
+
+    </div>
+    
+    <p id="empty" class="hidden text-center text-muted py-12">No matching games found. Try a different search term!</p>
+  </section>
+
+  <!-- QUICK CLICKER FEATURED SECTION -->
+  <section id="challenge" class="py-12">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold">Featured Quick Challenge</h2>
+      <p class="text-muted text-sm">Test your click speed right here on the homepage!</p>
+    </div>
+    
+    <div class="bg-gradient-to-r from-[#141e35] via-[#1a2542] to-[#211b42] border border-[#394365] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+      <div class="space-y-2 text-center md:text-left">
+        <div class="text-3xl md:text-5xl font-black text-cyan font-mono" id="quick-score">0 Clicks</div>
+        <p class="text-muted" id="quick-status">Press Start when you're ready!</p>
+        <div id="quick-message" class="text-cyan font-bold min-h-[24px]"></div>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <button id="quick-start" class="bg-cyan text-darkbg brand-font font-extrabold px-6 py-3 rounded-xl hover:bg-cyan/90 transition shadow-cyanGlow">
+          Start Game
+        </button>
+        <button id="quick-clicker" disabled class="bg-purple text-white brand-font font-extrabold px-8 py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple/90 transition shadow-purpleGlow">
+          CLICK ME!
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="border-t border-[#28304a] py-8 text-center text-xs text-muted">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div>© 2026 PLAYZONE • Playable Web Arcade Platform</div>
+    <div class="flex gap-4">
+      <span class="text-cyan font-mono">LOCAL STORAGE SAVING ACTIVE</span>
+    </div>
+  </div>
+</footer>
+
+<!-- UNIVERSAL GAME MODAL OVERLAY -->
+<div id="gameModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+  <div class="bg-panel border border-[#394365] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-[#28304a] flex justify-between items-center bg-[#0d1322]">
+      <div class="flex items-center gap-3">
+        <span id="modalIcon" class="text-2xl">🎮</span>
+        <h3 id="modalTitle" class="text-xl font-bold brand-font text-white">Game Title</h3>
+      </div>
+      <button id="closeModal" class="text-muted hover:text-white text-2xl font-bold transition px-2">✕</button>
+    </div>
+
+    <!-- Modal Body / Game Container -->
+    <div class="p-4 md:p-6 flex-grow flex flex-col items-center justify-center relative overflow-hidden bg-[#080b16]">
+      <div id="canvasWrapper" class="relative w-full flex justify-center items-center">
+        <canvas id="gameCanvas" width="600" height="400" class="border border-[#283451] rounded-xl bg-black max-w-full h-auto shadow-2xl"></canvas>
+        
+        <!-- OVERLAY RESTART BUTTON & GAME OVER DIALOG -->
+        <div id="gameOverOverlay" class="absolute inset-0 bg-darkbg/90 backdrop-blur-sm hidden flex flex-col items-center justify-center space-y-4 rounded-xl z-20">
+          <div class="text-3xl md:text-4xl font-black brand-font text-neonPink drop-shadow-[0_0_15px_rgba(255,42,135,0.8)]">GAME OVER</div>
+          <div id="gameOverScoreText" class="text-cyan font-mono font-bold text-base">FINAL SCORE: 0</div>
+          <button id="restartGameBtn" class="bg-gradient-to-r from-cyan via-purple to-neonPink text-darkbg brand-font font-black px-8 py-3.5 rounded-xl shadow-cyanGlow hover:scale-105 active:scale-95 transition duration-200 text-lg">
+            ⚡ RESTART GAME
+          </button>
+        </div>
+      </div>
+
+      <!-- In-Game Controls HUD -->
+      <div class="w-full mt-4 flex flex-wrap justify-between items-center text-xs text-muted gap-2 bg-[#101728] p-3 rounded-xl border border-[#232f4d]">
+        <div id="modalControls" class="font-mono text-cyan">Controls: Arrow keys / Mouse / Touch</div>
+        <div class="flex gap-4 font-mono text-white">
+          <div>SCORE: <span id="modalCurrentScore" class="text-cyan font-bold">0</span></div>
+          <div>HIGH: <span id="modalHighScore" class="text-purple font-bold">0</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- JAVASCRIPT: ARCADE ENGINE & ALL 6 MINI-GAMES -->
+<script>
+// Key tracking helper
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.key] = true; keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.key] = false; keys[e.code] = false; });
+
+// ==========================================
+// LOADING SCREEN CONTROLLER
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const loadingBar = document.getElementById('loadingBar');
+  const loadingText = document.getElementById('loadingText');
+  let progress = 0;
+
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 15) + 8;
+    if (progress > 100) progress = 100;
+    
+    loadingBar.style.width = progress + '%';
+    loadingText.textContent = `LOADING ARCADE MODULES... [${progress}%]`;
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        loadingScreen.classList.add('opacity-0');
+        setTimeout(() => {
+          loadingScreen.classList.add('hidden');
+        }, 500);
+      }, 300);
+    }
+  }, 70);
+});
+
+// ==========================================
+// SOUND SYNTHESIZER (Web Audio API)
+// ==========================================
+class SoundFx {
+  constructor() {
+    this.enabled = true;
+    this.ctx = null;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+  }
+  playTone(freq, type, duration) {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch (e) {}
+  }
+  jump() { this.playTone(440, 'square', 0.1); }
+  laser() { this.playTone(600, 'sawtooth', 0.08); }
+  coin() { this.playTone(880, 'sine', 0.15); }
+  hit() { this.playTone(120, 'sawtooth', 0.25); }
+  score() { this.playTone(587.33, 'triangle', 0.2); }
+  cheer() {
+    if (!this.enabled) return;
+    this.playTone(523.25, 'sine', 0.15);
+    setTimeout(() => this.playTone(659.25, 'sine', 0.2), 90);
+    setTimeout(() => this.playTone(783.99, 'triangle', 0.3), 180);
+  }
+}
+const sound = new SoundFx();
+
+const soundToggle = document.getElementById('soundToggle');
+soundToggle.addEventListener('click', () => {
+  sound.enabled = !sound.enabled;
+  soundToggle.innerHTML = sound.enabled ? '<span>🔊 Sound ON</span>' : '<span>🔇 Sound OFF</span>';
+});
+
+// ==========================================
+// LOCAL STORAGE & HIGH SCORES Persistence
+// ==========================================
+const scores = {
+  dungeon: parseInt(localStorage.getItem('pz_dungeon') || '0'),
+  football: parseInt(localStorage.getItem('pz_football') || '0'),
+  puzzle: parseInt(localStorage.getItem('pz_puzzle') || '0'),
+  space: parseInt(localStorage.getItem('pz_space') || '0'),
+  racing: parseInt(localStorage.getItem('pz_racing') || '0'),
+  clicker: parseInt(localStorage.getItem('pz_clicker') || '0'),
+};
+
+function updateHighScoreDisplays() {
+  for (const key in scores) {
+    const el = document.getElementById(`best-${key}`);
+    if (el) el.textContent = scores[key];
+  }
+}
+updateHighScoreDisplays();
+
+function saveScore(gameKey, score) {
+  if (score > scores[gameKey]) {
+    scores[gameKey] = score;
+    localStorage.setItem(`pz_${gameKey}`, score.toString());
+    updateHighScoreDisplays();
+    return true;
+  }
+  return false;
+}
+
+// ==========================================
+// SEARCH & FILTER CONTROLLER
+// ==========================================
+const searchInput = document.getElementById('search');
+const cards = Array.from(document.querySelectorAll('.card'));
+const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
+let currentFilter = 'all';
+
+function filterCards() {
+  const query = searchInput.value.toLowerCase().trim();
+  let count = 0;
+  cards.forEach(card => {
+    const cat = card.dataset.category;
+    const matchesCategory = currentFilter === 'all' || cat === currentFilter;
+    const matchesSearch = card.innerText.toLowerCase().includes(query);
+    if (matchesCategory && matchesSearch) {
+      card.style.display = 'flex';
+      count++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  document.getElementById('empty').style.display = count === 0 ? 'block' : 'none';
+}
+
+searchInput.addEventListener('input', filterCards);
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => {
+      b.classList.remove('active', 'bg-cyan/20', 'border-cyan', 'text-cyan');
+      b.classList.add('bg-panel', 'border-[#303a58]', 'text-muted');
+    });
+    btn.classList.add('active', 'bg-cyan/20', 'border-cyan', 'text-cyan');
+    btn.classList.remove('bg-panel', 'border-[#303a58]', 'text-muted');
+    currentFilter = btn.dataset.filter;
+    filterCards();
+  });
+});
+
+// ==========================================
+// QUICK CLICKER HOMEPAGE CHALLENGE
+// ==========================================
+let quickScore = 0, quickTime = 10, quickTimer = null, quickRunning = false;
+const quickScoreEl = document.getElementById('quick-score');
+const quickStatusEl = document.getElementById('quick-status');
+const quickMessageEl = document.getElementById('quick-message');
+const quickStartBtn = document.getElementById('quick-start');
+const quickClickerBtn = document.getElementById('quick-clicker');
+
+quickStartBtn.addEventListener('click', () => {
+  if (quickRunning) return;
+  quickScore = 0;
+  quickTime = 10;
+  quickRunning = true;
+  quickScoreEl.textContent = '0 Clicks';
+  quickStatusEl.textContent = 'Time left: 10s';
+  quickMessageEl.textContent = 'GO!';
+  quickStartBtn.disabled = true;
+  quickClickerBtn.disabled = false;
+  sound.coin();
+
+  quickTimer = setInterval(() => {
+    quickTime--;
+    quickStatusEl.textContent = `Time left: ${quickTime}s`;
+    if (quickTime <= 0) {
+      clearInterval(quickTimer);
+      quickRunning = false;
+      quickClickerBtn.disabled = true;
+      quickStartBtn.disabled = false;
+      quickStatusEl.textContent = `Time UP! Total Score: ${quickScore} Clicks`;
+      const isNew = saveScore('clicker', quickScore);
+      quickMessageEl.textContent = isNew ? '🎉 NEW HIGH SCORE RECORD!' : 'Great job! Play again to beat your record.';
+    }
+  }, 1000);
+});
+
+quickClickerBtn.addEventListener('click', () => {
+  if (quickRunning) {
+    quickScore++;
+    quickScoreEl.textContent = `${quickScore} Clicks`;
+    sound.jump();
+  }
+});
+
+// ==========================================
+// MODAL ENGINE & GAME HANDLER
+// ==========================================
+const modal = document.getElementById('gameModal');
+const closeModalBtn = document.getElementById('closeModal');
+const gameOverOverlay = document.getElementById('gameOverOverlay');
+const gameOverScoreText = document.getElementById('gameOverScoreText');
+const restartGameBtn = document.getElementById('restartGameBtn');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let currentGameKey = null;
+let animationFrameId = null;
+
+// Event Listeners for Launch Buttons
+document.querySelectorAll('.launch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.game;
+    openGameModal(key);
+  });
+});
+
+closeModalBtn.addEventListener('click', closeGameModal);
+restartGameBtn.addEventListener('click', () => {
+  gameOverOverlay.classList.add('hidden');
+  if (currentGameKey) openGameModal(currentGameKey);
+});
+
+function updateModalScore(score) {
+  document.getElementById('modalCurrentScore').textContent = score;
+}
+
+function openGameModal(gameKey) {
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  gameOverOverlay.classList.add('hidden');
+  currentGameKey = gameKey;
+  modal.classList.remove('hidden');
+  document.getElementById('modalHighScore').textContent = scores[gameKey] || 0;
+  updateModalScore(0);
+  
+  // Unbind canvas custom handlers
+  canvas.onclick = null;
+  canvas.onmousemove = null;
+
+  const titles = {
+    dungeon: { name: 'Adventure Quest', icon: '⚔️', ctrl: 'Controls: SPACE / UP Arrow to Jump over hazards' },
+    football: { name: 'Football Fever Pro', icon: '⚽', ctrl: 'Controls: Move mouse to aim, CLICK to shoot!' },
+    puzzle: { name: 'Brain Blocks (2048)', icon: '🧩', ctrl: 'Controls: Arrow Keys to merge matching tiles' },
+    space: { name: 'Space Run Shooter', icon: '🚀', ctrl: 'Controls: LEFT/RIGHT Arrows to move, SPACEBAR/CLICK to shoot' },
+    racing: { name: 'Turbo Racing', icon: '🏎️', ctrl: 'Controls: LEFT/RIGHT Arrows to switch lanes' },
+    clicker: { name: 'Clicker Rush', icon: '⚡', ctrl: 'Controls: CLICK shrinking targets before timer runs out!' }
+  };
+  
+  document.getElementById('modalTitle').textContent = titles[gameKey].name;
+  document.getElementById('modalIcon').textContent = titles[gameKey].icon;
+  document.getElementById('modalControls').textContent = titles[gameKey].ctrl;
+
+  if (gameKey === 'dungeon') initDungeonGame();
+  else if (gameKey === 'football') initFootballGame();
+  else if (gameKey === 'puzzle') initPuzzleGame();
+  else if (gameKey === 'space') initSpaceGame();
+  else if (gameKey === 'racing') initRacingGame();
+  else if (gameKey === 'clicker') initClickerGame();
+}
+
+function closeGameModal() {
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  gameOverOverlay.classList.add('hidden');
+  currentGameKey = null;
+  modal.classList.add('hidden');
+  canvas.onclick = null;
+  canvas.onmousemove = null;
+}
+
+function handleGameOver(finalScore) {
+  sound.hit();
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  
+  saveScore(currentGameKey, finalScore);
+  gameOverScoreText.textContent = `FINAL SCORE: ${finalScore} (BEST: ${scores[currentGameKey]})`;
+  gameOverOverlay.classList.remove('hidden');
+  updateModalScore(finalScore);
+}
+
+// ==========================================
+// GAME 1: ADVENTURE QUEST (Platform Jump)
+// ==========================================
+function initDungeonGame() {
+  let score = 0;
+  let hero = { x: 80, y: 280, width: 28, height: 35, vy: 0, gravity: 0.7, jumping: false };
+  let hazards = [];
+  let frame = 0;
+  let speed = 5.5;
+
+  function loop() {
+    frame++;
+    speed += 0.002; // Dynamic difficulty
+
+    if ((keys[' '] || keys['ArrowUp'] || keys['w']) && !hero.jumping) {
+      hero.vy = -12.5;
+      hero.jumping = true;
+      sound.jump();
+    }
+
+    hero.vy += hero.gravity;
+    hero.y += hero.vy;
+
+    if (hero.y >= 280) {
+      hero.y = 280;
+      hero.vy = 0;
+      hero.jumping = false;
+    }
+
+    // Spawn Hazards
+    if (frame % Math.max(35, Math.floor(75 - speed * 3)) === 0) {
+      hazards.push({ x: canvas.width, width: 20 + Math.random() * 15, height: 25 + Math.random() * 25 });
+    }
+
+    // Render Scene
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Ground
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 315, canvas.width, canvas.height - 315);
+    ctx.strokeStyle = '#29e6d2';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, 315); ctx.lineTo(canvas.width, 315); ctx.stroke();
+
+    // Hero
+    ctx.fillStyle = '#29e6d2';
+    ctx.shadowColor = '#29e6d2'; ctx.shadowBlur = 10;
+    ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
+    ctx.shadowBlur = 0;
+
+    // Hazards Movement & Collision Check
+    let dead = false;
+    hazards.forEach((h, idx) => {
+      h.x -= speed;
+      ctx.fillStyle = '#ff2a85';
+      ctx.fillRect(h.x, 315 - h.height, h.width, h.height);
+
+      if (hero.x < h.x + h.width && hero.x + hero.width > h.x &&
+          hero.y + hero.height > 315 - h.height) {
+        dead = true;
+      }
+
+      if (h.x + h.width < 0) {
+        hazards.splice(idx, 1);
+        score += 10;
+        sound.score();
+        updateModalScore(score);
+      }
+    });
+
+    if (dead) {
+      handleGameOver(score);
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ==========================================
+// GAME 2: FOOTBALL FEVER PRO (Penalty Shootout)
+// ==========================================
+function initFootballGame() {
+  let score = 0;
+  let ball = { x: canvas.width / 2, y: canvas.height - 40, z: 1, vx: 0, vy: 0, vz: 0, radius: 12, shooting: false };
+  let keeper = { x: canvas.width / 2 - 30, y: 120, width: 60, height: 20, targetX: canvas.width / 2 - 30 };
+  let goal = { x: canvas.width / 2 - 150, y: 50, width: 300, height: 110 };
+  let particles = [];
+  let power = 0;
+  let powerDir = 1;
+  let mousePos = { x: canvas.width / 2, y: 100 };
+  let wind = (Math.random() - 0.5) * 3;
+
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mousePos.x = e.clientX - rect.left;
+    mousePos.y = e.clientY - rect.top;
+  };
+
+  canvas.onclick = () => {
+    if (ball.shooting) return;
+
+    const angle = Math.atan2(mousePos.y - ball.y, mousePos.x - ball.x);
+    const speed = 7 + (power / 100) * 8;
+    
+    ball.vx = Math.cos(angle) * speed;
+    ball.vy = Math.sin(angle) * speed;
+    ball.vz = 0.025;
+    ball.shooting = true;
+    
+    // Goalkeeper diving AI
+    keeper.targetX = Math.min(goal.x + goal.width - keeper.width, Math.max(goal.x, mousePos.x - keeper.width / 2 + (Math.random() - 0.5) * 50));
+    sound.jump();
+  };
+
+  function createGoalParticles() {
+    for (let i = 0; i < 35; i++) {
+      particles.push({
+        x: ball.x, y: ball.y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        color: ['#29e6d2', '#ff2a85', '#9167ff', '#facc15'][Math.floor(Math.random() * 4)],
+        life: 30
+      });
+    }
+  }
+
+  function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height - 40;
+    ball.z = 1;
+    ball.vx = 0; ball.vy = 0; ball.vz = 0;
+    ball.shooting = false;
+    wind = (Math.random() - 0.5) * 4;
+  }
+
+  function loop() {
+    if (!ball.shooting) {
+      power += powerDir * 2.5;
+      if (power > 100 || power < 0) powerDir *= -1;
+    }
+
+    // 3D Stadium Field
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#062012');
+    grad.addColorStop(1, '#0f542c');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Goal Net
+    ctx.shadowBlur = 8; ctx.shadowColor = '#29e6d2';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(goal.x, goal.y, goal.width, goal.height);
+    
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    for (let x = goal.x; x < goal.x + goal.width; x += 20) {
+      ctx.beginPath(); ctx.moveTo(x, goal.y); ctx.lineTo(x, goal.y + goal.height); ctx.stroke();
+    }
+    for (let y = goal.y; y < goal.y + goal.height; y += 15) {
+      ctx.beginPath(); ctx.moveTo(goal.x, y); ctx.lineTo(goal.x + goal.width, y); ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+
+    // Keeper AI Movement
+    keeper.x += (keeper.targetX - keeper.x) * 0.14;
+    ctx.fillStyle = '#ff2a85';
+    ctx.shadowColor = '#ff2a85'; ctx.shadowBlur = 10;
+    ctx.fillRect(keeper.x, keeper.y, keeper.width, keeper.height);
+    ctx.shadowBlur = 0;
+
+    // Aim Line
+    if (!ball.shooting) {
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = 'rgba(41, 230, 210, 0.6)';
+      ctx.beginPath();
+      ctx.moveTo(ball.x, ball.y);
+      ctx.lineTo(mousePos.x, mousePos.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    let missed = false;
+
+    // Ball Physics
+    if (ball.shooting) {
+      ball.x += ball.vx + wind * 0.3;
+      ball.y += ball.vy;
+      ball.z = Math.max(0.4, ball.z - ball.vz);
+
+      // Keeper Save Check
+      if (ball.y <= keeper.y + keeper.height && ball.y >= keeper.y &&
+          ball.x >= keeper.x && ball.x <= keeper.x + keeper.width) {
+        missed = true;
+      }
+
+      // Goal Check
+      if (ball.y < goal.y + goal.height && ball.y > goal.y && ball.x > goal.x && ball.x < goal.x + goal.width) {
+        score += 10;
+        sound.cheer();
+        updateModalScore(score);
+        createGoalParticles();
+        resetBall();
+      } else if (ball.y < goal.y || ball.x < 0 || ball.x > canvas.width) {
+        missed = true;
+      }
+    }
+
+    // Goal Particles
+    particles.forEach((p, idx) => {
+      p.x += p.vx; p.y += p.vy; p.life--;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+      if (p.life <= 0) particles.splice(idx, 1);
+    });
+
+    // Render 3D Perspective Ball
+    const currentRadius = ball.radius * ball.z;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#000'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, currentRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // HUD: Power Gauge & Wind
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 12px Orbitron';
+    ctx.fillText(`WIND: ${wind > 0 ? '→' : '←'} ${Math.abs(wind).toFixed(1)} M/S`, 20, 30);
+    
+    // Power Meter
+    ctx.fillStyle = 'rgba(17, 24, 43, 0.8)';
+    ctx.fillRect(20, canvas.height - 30, 150, 14);
+    ctx.fillStyle = power > 75 ? '#ff2a85' : '#29e6d2';
+    ctx.fillRect(22, canvas.height - 28, (power / 100) * 146, 10);
+
+    if (missed) {
+      handleGameOver(score);
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ==========================================
+// GAME 3: BRAIN BLOCKS (2048)
+// ==========================================
+function initPuzzleGame() {
+  let score = 0;
+  let board = Array(4).fill(0).map(() => Array(4).fill(0));
+
+  function addTile() {
+    let empty = [];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (board[r][c] === 0) empty.push({ r, c });
+      }
+    }
+    if (empty.length > 0) {
+      let spot = empty[Math.floor(Math.random() * empty.length)];
+      board[spot.r][spot.c] = Math.random() < 0.85 ? 2 : 4;
+    }
+  }
+
+  addTile(); addTile();
+
+  function slide(row) {
+    let arr = row.filter(val => val);
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i] === arr[i + 1]) {
+        arr[i] *= 2;
+        score += arr[i];
+        sound.coin();
+        arr[i + 1] = 0;
+      }
+    }
+    arr = arr.filter(val => val);
+    while (arr.length < 4) arr.push(0);
+    return arr;
+  }
+
+  function move(direction) {
+    let oldBoard = JSON.stringify(board);
+
+    if (direction === 'LEFT') {
+      for (let r = 0; r < 4; r++) board[r] = slide(board[r]);
+    } else if (direction === 'RIGHT') {
+      for (let r = 0; r < 4; r++) board[r] = slide(board[r].slice().reverse()).reverse();
+    } else if (direction === 'UP') {
+      for (let c = 0; c < 4; c++) {
+        let col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+        col = slide(col);
+        for (let r = 0; r < 4; r++) board[r][c] = col[r];
+      }
+    } else if (direction === 'DOWN') {
+      for (let c = 0; c < 4; c++) {
+        let col = [board[0][c], board[1][c], board[2][c], board[3][c]].reverse();
+        col = slide(col).reverse();
+        for (let r = 0; r < 4; r++) board[r][c] = col[r];
+      }
+    }
+
+    if (JSON.stringify(board) !== oldBoard) {
+      addTile();
+      updateModalScore(score);
+    }
+  }
+
+  function checkGameOver() {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (board[r][c] === 0) return false;
+        if (c < 3 && board[r][c] === board[r][c + 1]) return false;
+        if (r < 3 && board[r][c] === board[r + 1][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  const keyHandler = (e) => {
+    if (currentGameKey !== 'puzzle') return;
+    if (e.key === 'ArrowLeft') move('LEFT');
+    if (e.key === 'ArrowRight') move('RIGHT');
+    if (e.key === 'ArrowUp') move('UP');
+    if (e.key === 'ArrowDown') move('DOWN');
+  };
+  window.addEventListener('keydown', keyHandler);
+
+  const tileColors = {
+    2: '#1e293b', 4: '#334155', 8: '#f97316', 16: '#ea580c',
+    32: '#ef4444', 64: '#dc2626', 128: '#eab308', 256: '#84cc16', 512: '#29e6d2', 1024: '#9167ff'
+  };
+
+  function loop() {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const tileSize = 75;
+    const gap = 12;
+    const startX = (canvas.width - (4 * tileSize + 3 * gap)) / 2;
+    const startY = (canvas.height - (4 * tileSize + 3 * gap)) / 2;
+
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const val = board[r][c];
+        const x = startX + c * (tileSize + gap);
+        const y = startY + r * (tileSize + gap);
+
+        ctx.fillStyle = tileColors[val] || '#0284c7';
+        ctx.beginPath();
+        ctx.roundRect(x, y, tileSize, tileSize, 12);
+        ctx.fill();
+
+        if (val > 0) {
+          ctx.fillStyle = val <= 4 ? '#94a3b8' : '#ffffff';
+          ctx.font = '700 22px Orbitron';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(val.toString(), x + tileSize / 2, y + tileSize / 2);
+        }
+      }
+    }
+
+    if (checkGameOver()) {
+      window.removeEventListener('keydown', keyHandler);
+      handleGameOver(score);
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ==========================================
+// GAME 4: SPACE RUN SHOOTER
+// ==========================================
+function initSpaceGame() {
+  let score = 0;
+  let ship = { x: canvas.width / 2 - 15, y: canvas.height - 50, width: 30, height: 30, speed: 7 };
+  let bullets = [];
+  let obstacles = [];
+  let frameCount = 0;
+
+  canvas.onclick = shoot;
+
+  function shoot() {
+    if (currentGameKey !== 'space') return;
+    bullets.push({ x: ship.x + ship.width / 2 - 2, y: ship.y, width: 4, height: 12 });
+    sound.laser();
+  }
+
+  function loop() {
+    frameCount++;
+    if (frameCount % 20 === 0) {
+      obstacles.push({
+        x: Math.random() * (canvas.width - 35),
+        y: -40,
+        width: 30 + Math.random() * 25,
+        height: 25 + Math.random() * 20,
+        speed: 3 + Math.random() * 4
+      });
+    }
+
+    if ((keys['ArrowLeft'] || keys['a']) && ship.x > 0) ship.x -= ship.speed;
+    if ((keys['ArrowRight'] || keys['d']) && ship.x < canvas.width - ship.width) ship.x += ship.speed;
+    if (keys[' ']) {
+      if (frameCount % 8 === 0) shoot();
+    }
+
+    ctx.fillStyle = '#050814';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Starfield
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 30; i++) {
+      ctx.fillRect((i * 47 + frameCount * 2) % canvas.width, (i * 83 + frameCount * 6) % canvas.height, 2, 2);
+    }
+
+    // Ship
+    ctx.fillStyle = '#29e6d2';
+    ctx.shadowColor = '#29e6d2'; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(ship.x + ship.width / 2, ship.y);
+    ctx.lineTo(ship.x, ship.y + ship.height);
+    ctx.lineTo(ship.x + ship.width, ship.y + ship.height);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Bullets
+    bullets.forEach((b, bIdx) => {
+      b.y -= 9;
+      ctx.fillStyle = '#ff2a85';
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+
+      if (b.y < -10) bullets.splice(bIdx, 1);
+    });
+
+    // Obstacles
+    let gameOver = false;
+    obstacles.forEach((obs, oIdx) => {
+      obs.y += obs.speed;
+      ctx.fillStyle = '#9167ff';
+      ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+      // Bullet Collision
+      bullets.forEach((b, bIdx) => {
+        if (b.x < obs.x + obs.width && b.x + b.width > obs.x &&
+            b.y < obs.y + obs.height && b.y + b.height > obs.y) {
+          obstacles.splice(oIdx, 1);
+          bullets.splice(bIdx, 1);
+          score += 10;
+          sound.coin();
+          updateModalScore(score);
+        }
+      });
+
+      // Player Collision
+      if (ship.x < obs.x + obs.width && ship.x + ship.width > obs.x &&
+          ship.y < obs.y + obs.height && ship.y + ship.height > obs.y) {
+        gameOver = true;
+      }
+
+      if (obs.y > canvas.height) obstacles.splice(oIdx, 1);
+    });
+
+    if (gameOver) {
+      handleGameOver(score);
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ==========================================
+// GAME 5: TURBO RACING
+// ==========================================
+function initRacingGame() {
+  let score = 0;
+  let laneWidth = canvas.width / 3;
+  let currentLane = 1;
+  let car = { y: canvas.height - 70, width: 32, height: 50 };
+  let traffic = [];
+  let frameCount = 0;
+
+  const keyHandler = (e) => {
+    if (currentGameKey !== 'racing') return;
+    if ((e.key === 'ArrowLeft' || e.key === 'a') && currentLane > 0) {
+      currentLane--;
+      sound.jump();
+    }
+    if ((e.key === 'ArrowRight' || e.key === 'd') && currentLane < 2) {
+      currentLane++;
+      sound.jump();
+    }
+  };
+  window.addEventListener('keydown', keyHandler);
+
+  function loop() {
+    frameCount++;
+    if (frameCount % 30 === 0) {
+      traffic.push({
+        lane: Math.floor(Math.random() * 3),
+        y: -60,
+        speed: 5 + Math.random() * 3
+      });
+    }
+
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Track Lanes
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([20, 20]);
+    ctx.lineDashOffset = -frameCount * 8;
+    ctx.beginPath();
+    ctx.moveTo(laneWidth, 0); ctx.lineTo(laneWidth, canvas.height);
+    ctx.moveTo(laneWidth * 2, 0); ctx.lineTo(laneWidth * 2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Player Car
+    let playerX = currentLane * laneWidth + (laneWidth - car.width) / 2;
+    ctx.fillStyle = '#29e6d2';
+    ctx.shadowColor = '#29e6d2'; ctx.shadowBlur = 12;
+    ctx.fillRect(playerX, car.y, car.width, car.height);
+    ctx.shadowBlur = 0;
+
+    let crash = false;
+    traffic.forEach((t, i) => {
+      t.y += t.speed;
+      let trafficX = t.lane * laneWidth + (laneWidth - car.width) / 2;
+      ctx.fillStyle = '#ff2a85';
+      ctx.fillRect(trafficX, t.y, car.width, car.height);
+
+      if (t.lane === currentLane && t.y + car.height > car.y && t.y < car.y + car.height) {
+        crash = true;
+      }
+
+      if (t.y > canvas.height) {
+        traffic.splice(i, 1);
+        score += 10;
+        sound.score();
+        updateModalScore(score);
+      }
+    });
+
+    if (crash) {
+      window.removeEventListener('keydown', keyHandler);
+      handleGameOver(score);
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ==========================================
+// GAME 6: CLICKER RUSH
+// ==========================================
+function initClickerGame() {
+  let score = 0;
+  let target = { x: 200, y: 200, radius: 35, life: 100 };
+
+  function moveTarget() {
+    target.x = 50 + Math.random() * (canvas.width - 100);
+    target.y = 50 + Math.random() * (canvas.height - 100);
+    target.radius = Math.max(18, 35 - Math.floor(score / 5));
+    target.life = 100;
+  }
+
+  canvas.onclick = (e) => {
+    if (currentGameKey !== 'clicker') return;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const dist = Math.hypot(clickX - target.x, clickY - target.y);
+    if (dist < target.radius) {
+      score += 1;
+      sound.coin();
+      updateModalScore(score);
+      moveTarget();
+    }
+  };
+
+  function loop() {
+    ctx.fillStyle = '#0b0f19';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    target.life -= 1.6 + (score * 0.04);
+
+    if (target.life <= 0) {
+      handleGameOver(score);
+      return;
+    }
+
+    ctx.fillStyle = '#ff2a85';
+    ctx.beginPath();
+    ctx.arc(target.x, target.y, target.radius, 0, (Math.PI * 2) * (target.life / 100));
+    ctx.lineTo(target.x, target.y);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 13px Orbitron';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CLICK!', target.x, target.y);
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+</script>
+</body>
+</html>
